@@ -20,6 +20,17 @@
 </head>
 <body>
   <div id="root"></div>
+  <script>
+    window.onerror = function(msg, src, line, col, err) {
+      document.getElementById('root').innerHTML =
+        '<div style="padding:40px;font-family:monospace;color:#dc2626;background:#fef2f2;margin:20px;border-radius:8px;border:1px solid #fca5a5">' +
+        '<h2 style="margin-bottom:12px">启动错误</h2>' +
+        '<p><b>Error:</b> ' + msg + '</p>' +
+        '<p><b>Source:</b> ' + src + ':' + line + ':' + col + '</p>' +
+        '<pre style="margin-top:12px;white-space:pre-wrap;font-size:12px">' + (err && err.stack ? err.stack : '') + '</pre>' +
+        '<p style="margin-top:16px;color:#666">请将此信息截图反馈</p></div>';
+    };
+  </script>
   <script src="renderer.js"></script>
 </body>
 </html>

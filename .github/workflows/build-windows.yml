@@ -38,11 +38,19 @@ jobs:
       - name: Build Tauri app
         run: npx tauri build
 
+      - name: List release files (debug)
+        run: |
+          echo "=== release root ==="
+          dir src-tauri\target\release\*.exe
+          echo "=== bundle nsis ==="
+          dir src-tauri\target\release\bundle\nsis\
+        shell: cmd
+
       - name: Upload portable exe
         uses: actions/upload-artifact@v4
         with:
           name: STS2-Mod-Manager-Portable
-          path: src-tauri/target/release/sts2-mod-manager.exe
+          path: src-tauri/target/release/*.exe
           retention-days: 30
 
       - name: Upload NSIS installer
