@@ -448,10 +448,99 @@ pub fn mods_uninstall(
 }
 
 fn smart_extract_zip(zip_path: &str, mods_dir: &Path) -> Result<(), String> {
-    let file = fs::File::open(zip_path).map_err(|e| e.to_string())?;
-    let mut archive = zip::ZipArchive::new(file).map_err(|e| e.to_string())?;
+    let ext = Path::new(zip_path)
+        .extension()
+        .map(|e| e.to_string_lossy().to_lowercase())
+        .unwrap_or_default();
+    if ext != "zip" {
+        return Err(format!(
+            "不支持的格式: .{}\n\n目前仅支持 .zip 格式的压缩包。\n如果是 .rar / .7z 请先解压后拖入文件夹，或转换为 .zip 格式。",
+            ext
+        ));
+    }
 
-    // Check if all entries share a single root folder
+    let file = fs::File::open(zip_path).map_err(|e| format!(
+        "无法读取压缩包: {}\n\n该文件可能已损坏或不是有效的 ZIP 格式。\n\nMOD 压缩包应为 .zip 格式，内含:\n  • ModName.json (MOD 描述文件)\n  • ModName.dll (代码类 MOD)\n  • ModName.pck (资源类 MOD)",
+        e
+    ))?;
+    let mut archive = zip::ZipArchive::new(file).map_err(|e| format!(
+        "无法读取压缩包: {}\n\n该文件可能已损坏或不是有效的 ZIP 格式。",
+        e
+    ))?;
+
+    if archive.len() == 0 {
+        return Err(format!("压缩包为空: {}", Path::new(zip_path).file_name().unwrap_or_default().to_string_lossy()));
+    }
+
+    // ── Smart search: find MOD manifest JSON files inside the ZIP ──
+    let mut mod_roots: Vec<(String, String)> = Vec::new(); // (mod_dir, folder_name)
+    let mut flat_mod = false;
+    for i in 0..archive.len() {
+        let entry = archive.by_index(i).map_err(|e| e.to_string())?;
+        if entry.is_dir() { continue; }
+        let name = entry.name().replace('\\', "/");
+        if !name.ends_with(".json") { continue; }
+        let mut buf = Vec::new();
+        let mut reader = entry;
+        std::io::Read::read_to_end(&mut reader, &mut buf).map_err(|e| e.to_string())?;
+        if let Ok(text) = String::from_utf8(buf) {
+            if let Ok(val) = serde_json::from_str::<serde_json::Value>(&text) {
+                if val.get("id").is_some() && val.get("name").is_some() {
+                    let parts: Vec<&str> = name.split('/').collect();
+                    if parts.len() >= 2 {
+                        let mod_dir = parts[..parts.len()-1].join("/");
+                        let folder_name = parts[parts.len()-2].to_string();
+                        mod_roots.push((mod_dir, folder_name));
+                    } else {
+                        flat_mod = true;
+                    }
+                }
+            }
+        }
+    }
+
+    if !mod_roots.is_empty() || flat_mod {
+        // Re-open for extraction
+        let file2 = fs::File::open(zip_path).map_err(|e| e.to_string())?;
+        let mut archive2 = zip::ZipArchive::new(file2).map_err(|e| e.to_string())?;
+
+        for (mod_dir, folder_name) in &mod_roots {
+            let dest_dir = mods_dir.join(folder_name);
+            let _ = fs::create_dir_all(&dest_dir);
+            let prefix = format!("{}/", mod_dir);
+            for i in 0..archive2.len() {
+                let mut entry = archive2.by_index(i).map_err(|e| e.to_string())?;
+                let ep = entry.name().replace('\\', "/");
+                if !ep.starts_with(&prefix) { continue; }
+                let rel = &ep[prefix.len()..];
+                if rel.is_empty() { continue; }
+                let out_path = dest_dir.join(rel);
+                if entry.is_dir() {
+                    let _ = fs::create_dir_all(&out_path);
+                } else {
+                    if let Some(parent) = out_path.parent() {
+                        let _ = fs::create_dir_all(parent);
+                    }
+                    let mut outfile = fs::File::create(&out_path).map_err(|e| e.to_string())?;
+                    std::io::copy(&mut entry, &mut outfile).map_err(|e| e.to_string())?;
+                }
+            }
+        }
+
+        if flat_mod && mod_roots.is_empty() {
+            for i in 0..archive2.len() {
+                let mut entry = archive2.by_index(i).map_err(|e| e.to_string())?;
+                let ep = entry.name().replace('\\', "/");
+                if ep.contains('/') || entry.is_dir() { continue; }
+                let out_path = mods_dir.join(&ep);
+                let mut outfile = fs::File::create(&out_path).map_err(|e| e.to_string())?;
+                std::io::copy(&mut entry, &mut outfile).map_err(|e| e.to_string())?;
+            }
+        }
+        return Ok(());
+    }
+
+    // ── Fallback: no manifest found, use legacy extraction ──
     let mut top_dirs = std::collections::HashSet::new();
     let mut has_root_file = false;
     for i in 0..archive.len() {
@@ -468,10 +557,8 @@ fn smart_extract_zip(zip_path: &str, mods_dir: &Path) -> Result<(), String> {
     }
 
     let dest = if !has_root_file && top_dirs.len() == 1 {
-        // Already has a single root folder, extract directly
         mods_dir.to_path_buf()
     } else {
-        // Loose files — create subfolder from zip filename
         let base_name = Path::new(zip_path)
             .file_stem()
             .map(|s| s.to_string_lossy().to_string())
@@ -481,7 +568,6 @@ fn smart_extract_zip(zip_path: &str, mods_dir: &Path) -> Result<(), String> {
         sub_dir
     };
 
-    // Re-open archive for extraction
     let file2 = fs::File::open(zip_path).map_err(|e| e.to_string())?;
     let mut archive2 = zip::ZipArchive::new(file2).map_err(|e| e.to_string())?;
     for i in 0..archive2.len() {
@@ -495,6 +581,33 @@ fn smart_extract_zip(zip_path: &str, mods_dir: &Path) -> Result<(), String> {
             }
             let mut outfile = fs::File::create(&out_path).map_err(|e| e.to_string())?;
             std::io::copy(&mut entry, &mut outfile).map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
+fn install_folder(folder_path: &str, mods_dir: &Path) -> Result<(), String> {
+    let src = Path::new(folder_path);
+    if !src.is_dir() {
+        return Err(format!("不是有效的文件夹: {}", folder_path));
+    }
+    let folder_name = src.file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| "unknown_mod".to_string());
+    let dest = mods_dir.join(&folder_name);
+    copy_dir_recursive(src, &dest)
+}
+
+fn copy_dir_recursive(src: &Path, dest: &Path) -> Result<(), String> {
+    let _ = fs::create_dir_all(dest);
+    for entry in fs::read_dir(src).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let src_path = entry.path();
+        let dest_path = dest.join(entry.file_name());
+        if src_path.is_dir() {
+            copy_dir_recursive(&src_path, &dest_path)?;
+        } else {
+            fs::copy(&src_path, &dest_path).map_err(|e| e.to_string())?;
         }
     }
     Ok(())
@@ -541,17 +654,22 @@ pub async fn mods_install(
     let mut installed = Vec::new();
     for fp in &file_paths {
         let path_str = fp.to_string();
-        if let Err(e) = smart_extract_zip(&path_str, &mods_dir) {
+        let p = Path::new(&path_str);
+        let result = if p.is_dir() {
+            install_folder(&path_str, &mods_dir)
+        } else {
+            smart_extract_zip(&path_str, &mods_dir)
+        };
+        if let Err(e) = result {
             return Ok(ModResult {
                 success: false,
-                error: Some(format!("解压失败: {}", e)),
+                error: Some(e),
                 mods: None,
                 installed: None,
             });
         }
         installed.push(
-            Path::new(&path_str)
-                .file_name()
+            p.file_name()
                 .map(|n| n.to_string_lossy().to_string())
                 .unwrap_or_default(),
         );
@@ -587,17 +705,22 @@ pub fn mods_install_drop(
     let mut installed = Vec::new();
 
     for fp in &file_paths {
-        if let Err(e) = smart_extract_zip(fp, &mods_dir) {
+        let p = Path::new(fp.as_str());
+        let result = if p.is_dir() {
+            install_folder(fp, &mods_dir)
+        } else {
+            smart_extract_zip(fp, &mods_dir)
+        };
+        if let Err(e) = result {
             return ModResult {
                 success: false,
-                error: Some(format!("解压失败: {}", e)),
+                error: Some(e),
                 mods: None,
                 installed: None,
             };
         }
         installed.push(
-            Path::new(fp)
-                .file_name()
+            p.file_name()
                 .map(|n| n.to_string_lossy().to_string())
                 .unwrap_or_default(),
         );

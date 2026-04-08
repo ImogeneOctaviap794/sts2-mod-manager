@@ -240,16 +240,18 @@ export default function App() {
   const handleDrop = async (e) => {
     e.preventDefault();
     setDragOver(false);
-    const files = Array.from(e.dataTransfer.files)
-      .filter(f => f.name.endsWith('.zip'))
+    const paths = Array.from(e.dataTransfer.files)
+      .filter(f => f.name.endsWith('.zip') || !f.name.includes('.') || f.type === '')
       .map(f => f.path);
-    if (files.length > 0) {
-      const result = await window.api.installDrop(files);
-      if (result.success) {
-        showToast(`已安装: ${result.installed.join(', ')}`);
-        if (result.mods) syncMods(result.mods); else refreshMods();
-      } else showToast(result.error, 'error');
+    if (paths.length === 0) {
+      showToast('请拖入 .zip 压缩包或 MOD 文件夹', 'error');
+      return;
     }
+    const result = await window.api.installDrop(paths);
+    if (result.success) {
+      showToast(`已安装: ${result.installed.join(', ')}`);
+      if (result.mods) syncMods(result.mods); else refreshMods();
+    } else showToast(result.error, 'error');
   };
 
   const hasMissingDeps = (mod) => {

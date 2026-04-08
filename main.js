@@ -368,9 +368,94 @@ ipcMain.handle('mods:uninstall', (_, modInfo) => {
 });
 
 function smartExtractZip(zipPath, modsDir) {
-  const zip = new AdmZip(zipPath);
+  const ext = path.extname(zipPath).toLowerCase();
+  if (ext !== '.zip') {
+    throw new Error(
+      `不支持的格式: ${ext}\n\n` +
+      `目前仅支持 .zip 格式的压缩包。\n` +
+      `如果是 .rar / .7z 请先解压后拖入文件夹，或转换为 .zip 格式。`
+    );
+  }
+
+  let zip;
+  try {
+    zip = new AdmZip(zipPath);
+  } catch (e) {
+    throw new Error(
+      `无法读取压缩包: ${path.basename(zipPath)}\n\n` +
+      `该文件可能已损坏或不是有效的 ZIP 格式。\n\n` +
+      `MOD 压缩包应为 .zip 格式，内含以下文件之一:\n` +
+      `  • ModName.json (MOD 描述文件)\n` +
+      `  • ModName.dll (代码类 MOD)\n` +
+      `  • ModName.pck (资源类 MOD)`
+    );
+  }
+
   const entries = zip.getEntries();
-  // Check if all entries share a common root folder
+  if (entries.length === 0) {
+    throw new Error(`压缩包为空: ${path.basename(zipPath)}`);
+  }
+
+  // ── Smart search: find MOD manifest JSON files inside the ZIP ──
+  const modRoots = []; // { prefix, folderName }
+  for (const entry of entries) {
+    if (entry.isDirectory) continue;
+    const entryPath = entry.entryName.replace(/\\/g, '/');
+    if (!entryPath.endsWith('.json')) continue;
+    try {
+      const content = JSON.parse(entry.getData().toString('utf8'));
+      if (content.id && content.name) {
+        // Found a MOD manifest — determine its parent directory
+        const parts = entryPath.split('/');
+        if (parts.length >= 2) {
+          // e.g. "SomeFolder/SubDir/MyMod/MyMod.json" → modDir = "SomeFolder/SubDir/MyMod", prefix = "SomeFolder/SubDir/"
+          const modDir = parts.slice(0, -1).join('/');
+          const folderName = parts[parts.length - 2];
+          const prefix = parts.slice(0, -2).join('/');
+          modRoots.push({ prefix: prefix ? prefix + '/' : '', folderName, modDir });
+        } else {
+          // JSON at root level — flat mod
+          modRoots.push({ prefix: '', folderName: null, modDir: null });
+        }
+      }
+    } catch (e) { /* not valid JSON or not a manifest */ }
+  }
+
+  if (modRoots.length > 0) {
+    // Extract each found MOD to the mods directory
+    for (const mr of modRoots) {
+      if (mr.modDir) {
+        // Folder mod: extract entries under modDir/ into modsDir/folderName/
+        const destDir = path.join(modsDir, mr.folderName);
+        if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+        const modPrefix = mr.modDir + '/';
+        for (const entry of entries) {
+          const ep = entry.entryName.replace(/\\/g, '/');
+          if (!ep.startsWith(modPrefix)) continue;
+          const relativePath = ep.substring(modPrefix.length);
+          if (!relativePath) continue;
+          const outPath = path.join(destDir, relativePath);
+          if (entry.isDirectory) {
+            if (!fs.existsSync(outPath)) fs.mkdirSync(outPath, { recursive: true });
+          } else {
+            const parentDir = path.dirname(outPath);
+            if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
+            fs.writeFileSync(outPath, entry.getData());
+          }
+        }
+      } else {
+        // Flat mod at root: extract all root-level files to modsDir
+        for (const entry of entries) {
+          const ep = entry.entryName.replace(/\\/g, '/');
+          if (ep.includes('/') || entry.isDirectory) continue;
+          fs.writeFileSync(path.join(modsDir, ep), entry.getData());
+        }
+      }
+    }
+    return;
+  }
+
+  // ── Fallback: no manifest found, use legacy extraction ──
   const topDirs = new Set();
   let hasRootFile = false;
   for (const entry of entries) {
@@ -381,16 +466,39 @@ function smartExtractZip(zipPath, modsDir) {
     }
     if (parts[0]) topDirs.add(parts[0]);
   }
+
   if (!hasRootFile && topDirs.size === 1) {
-    // Already has a single root folder, extract directly
     zip.extractAllTo(modsDir, true);
   } else {
-    // Loose files — create subfolder from zip filename
     const baseName = path.basename(zipPath, path.extname(zipPath));
     const subDir = path.join(modsDir, baseName);
     if (!fs.existsSync(subDir)) fs.mkdirSync(subDir, { recursive: true });
     zip.extractAllTo(subDir, true);
   }
+
+  // ── Post-extraction check: warn if no MOD was found ──
+  const fileList = entries.map(e => e.entryName).join(', ');
+  const hasModFile = entries.some(e => {
+    const n = e.entryName.toLowerCase();
+    return n.endsWith('.json') || n.endsWith('.dll') || n.endsWith('.pck');
+  });
+  if (!hasModFile) {
+    throw new Error(
+      `压缩包已解压，但未检测到 MOD 文件。\n\n` +
+      `压缩包内容: ${fileList.substring(0, 200)}${fileList.length > 200 ? '...' : ''}\n\n` +
+      `有效的 MOD 压缩包应包含:\n` +
+      `  • ModName.json (MOD 描述文件，必须含 id 和 name 字段)\n` +
+      `  • ModName.dll (代码类 MOD) 和/或\n` +
+      `  • ModName.pck (资源类 MOD)\n\n` +
+      `请确认下载的是正确的 MOD 文件。`
+    );
+  }
+}
+
+function installFolder(folderPath, modsDir) {
+  const folderName = path.basename(folderPath);
+  const dest = path.join(modsDir, folderName);
+  fs.cpSync(folderPath, dest, { recursive: true });
 }
 
 ipcMain.handle('mods:install', async () => {
@@ -398,9 +506,9 @@ ipcMain.handle('mods:install', async () => {
   if (!modsDir) return { success: false, error: 'Game path not set' };
 
   const result = await dialog.showOpenDialog(mainWindow, {
-    title: 'Select MOD Archive',
+    title: '选择 MOD 压缩包或文件夹',
     filters: [{ name: 'Archives', extensions: ['zip'] }],
-    properties: ['openFile', 'multiSelections'],
+    properties: ['openFile', 'openDirectory', 'multiSelections'],
   });
 
   if (result.canceled) return { success: false, error: 'Cancelled' };
@@ -408,10 +516,14 @@ ipcMain.handle('mods:install', async () => {
   const installed = [];
   for (const filePath of result.filePaths) {
     try {
-      smartExtractZip(filePath, modsDir);
+      if (fs.statSync(filePath).isDirectory()) {
+        installFolder(filePath, modsDir);
+      } else {
+        smartExtractZip(filePath, modsDir);
+      }
       installed.push(path.basename(filePath));
     } catch (e) {
-      return { success: false, error: `Failed to extract ${path.basename(filePath)}: ${e.message}` };
+      return { success: false, error: e.message };
     }
   }
   return { success: true, installed, mods: scanMods() };
@@ -424,10 +536,14 @@ ipcMain.handle('mods:installDrop', async (_, filePaths) => {
   const installed = [];
   for (const filePath of filePaths) {
     try {
-      smartExtractZip(filePath, modsDir);
+      if (fs.statSync(filePath).isDirectory()) {
+        installFolder(filePath, modsDir);
+      } else {
+        smartExtractZip(filePath, modsDir);
+      }
       installed.push(path.basename(filePath));
     } catch (e) {
-      return { success: false, error: `Failed to extract ${path.basename(filePath)}: ${e.message}` };
+      return { success: false, error: e.message };
     }
   }
   return { success: true, installed, mods: scanMods() };
