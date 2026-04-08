@@ -1,13 +1,12 @@
 import React from 'react';
 import {
-  Package, FileText, Layers, FolderOpen, Save, Settings, HardDrive, ExternalLink,
+  Package, FileText, FolderOpen, Save, HardDrive, ExternalLink, Github,
 } from 'lucide-react';
 
 const navItems = [
   { id: 'mods', icon: Package, label: 'MOD 管理' },
   { id: 'saves', icon: HardDrive, label: '存档管理' },
   { id: 'logs', icon: FileText, label: '游戏日志' },
-  { id: 'profiles', icon: Layers, label: '配置档案' },
 ];
 
 const quickLinks = [

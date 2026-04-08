@@ -44,6 +44,8 @@ contextBridge.exposeInMainWorld('api', {
 
   // Translate
   translateText: (text) => ipcRenderer.invoke('translate:text', text),
+  loadTranslations: () => ipcRenderer.invoke('translations:load'),
+  saveTranslations: (data) => ipcRenderer.invoke('translations:save', data),
 
   // Saves
   scanSaves: () => ipcRenderer.invoke('saves:scan'),

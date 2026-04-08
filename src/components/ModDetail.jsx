@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ToggleLeft, ToggleRight, Trash2, AlertTriangle, FileText, Box, Code, Languages } from 'lucide-react';
+import { X, ToggleLeft, ToggleRight, Trash2, AlertTriangle, FileText, Box, Code, Languages, ExternalLink, Shield, Gamepad2, Palette } from 'lucide-react';
 
 function formatSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
@@ -12,21 +12,46 @@ function isChinese(text) {
   return /[\u4e00-\u9fff]/.test(text);
 }
 
-export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall }) {
+function getModCategory(mod, allMods) {
+  const isDepForOthers = allMods.some(m => m.id !== mod.id && m.dependencies && m.dependencies.includes(mod.id));
+  if (isDepForOthers) return { label: '框架前置', color: 'bg-indigo-50 text-indigo-600', icon: Shield };
+  if (mod.affects_gameplay || mod.has_dll) return { label: '玩法改动', color: 'bg-amber-50 text-amber-700', icon: Gamepad2 };
+  return { label: '资源类', color: 'bg-teal-50 text-teal-600', icon: Palette };
+}
+
+export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall, onSelectMod, onTranslationSaved }) {
   const enabledIds = allMods.filter(m => m.enabled).map(m => m.id);
   const missingDeps = (mod.dependencies || []).filter(d => !enabledIds.includes(d));
   const dependents = allMods.filter(m => m.dependencies && m.dependencies.includes(mod.id) && m.enabled);
+  const category = getModCategory(mod, allMods);
+  const CategoryIcon = category.icon;
 
   const [translatedDesc, setTranslatedDesc] = useState(null);
   const [translatedName, setTranslatedName] = useState(null);
   const [translating, setTranslating] = useState(false);
   const [translateError, setTranslateError] = useState(null);
 
-  // Reset translation when mod changes
+  // Load saved translations when mod changes
   useEffect(() => {
-    setTranslatedDesc(null);
-    setTranslatedName(null);
     setTranslateError(null);
+    if (window.api.loadTranslations) {
+      window.api.loadTranslations().then(saved => {
+        const t = saved[mod.id];
+        if (t) {
+          setTranslatedName(t.name || null);
+          setTranslatedDesc(t.desc || null);
+        } else {
+          setTranslatedName(null);
+          setTranslatedDesc(null);
+        }
+      }).catch(() => {
+        setTranslatedName(null);
+        setTranslatedDesc(null);
+      });
+    } else {
+      setTranslatedName(null);
+      setTranslatedDesc(null);
+    }
   }, [mod.id, mod.instanceKey]);
 
   const handleTranslate = async () => {
@@ -39,9 +64,17 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
         !isChinese(descText) && descText ? window.api.translateText(descText) : null,
         !isChinese(nameText) && nameText ? window.api.translateText(nameText) : null,
       ]);
-      if (results[0]?.success) setTranslatedDesc(results[0].translated);
-      if (results[1]?.success) setTranslatedName(results[1].translated);
+      let newName = translatedName, newDesc = translatedDesc;
+      if (results[0]?.success) { newDesc = results[0].translated; setTranslatedDesc(newDesc); }
+      if (results[1]?.success) { newName = results[1].translated; setTranslatedName(newName); }
       if (results[0] && !results[0].success) setTranslateError(results[0].error);
+      // Persist
+      if (window.api.saveTranslations && (newName || newDesc)) {
+        const saved = await window.api.loadTranslations();
+        saved[mod.id] = { name: newName, desc: newDesc };
+        await window.api.saveTranslations(saved);
+        if (onTranslationSaved) onTranslationSaved();
+      }
     } catch (e) {
       setTranslateError(e.message);
     }
@@ -54,8 +87,11 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
     <div className="w-80 bg-white border-l border-gray-100 flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
-        <h2 className="font-bold text-base truncate">{mod.name}</h2>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+        <div className="min-w-0 flex-1 mr-2">
+          <h2 className="font-bold text-base truncate">{translatedName || mod.name}</h2>
+          {translatedName && <p className="text-[11px] text-gray-400 truncate">{mod.name}</p>}
+        </div>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0">
           <X size={18} />
         </button>
       </div>
@@ -72,6 +108,18 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
           </button>
         </div>
 
+        {/* Category badge */}
+        <div className="flex items-center gap-2">
+          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${category.color}`}>
+            <CategoryIcon size={13} /> {category.label}
+          </span>
+          {missingDeps.length > 0 && mod.enabled && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-red-50 text-red-600">
+              <AlertTriangle size={13} /> 缺失依赖
+            </span>
+          )}
+        </div>
+
         {/* Info rows */}
         <div className="space-y-3">
           {[
@@ -79,7 +127,6 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
             ['作者', mod.author || '未知'],
             ['版本', mod.version || '未知'],
             ['大小', formatSize(mod.size)],
-            ['影响玩法', mod.affects_gameplay ? '是' : '否'],
             ['类型', mod.isFolder ? '文件夹 MOD' : '独立文件 MOD'],
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between">
@@ -88,14 +135,6 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
             </div>
           ))}
         </div>
-
-        {/* Translated name */}
-        {translatedName && (
-          <div className="bg-blue-50 rounded-lg px-3 py-2">
-            <p className="text-[10px] text-blue-400 font-semibold mb-0.5">名称翻译</p>
-            <p className="text-sm text-blue-700 font-medium">{translatedName}</p>
-          </div>
-        )}
 
         {/* Description */}
         <div>
@@ -109,12 +148,13 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
               </button>
             )}
           </div>
-          <p className="text-sm text-gray-600 leading-relaxed">{mod.description || '暂无描述'}</p>
-          {translatedDesc && (
-            <div className="mt-2 bg-blue-50 rounded-lg px-3 py-2">
-              <p className="text-[10px] text-blue-400 font-semibold mb-0.5">中文翻译</p>
-              <p className="text-sm text-blue-700 leading-relaxed">{translatedDesc}</p>
-            </div>
+          {translatedDesc ? (
+            <>
+              <p className="text-sm text-gray-700 leading-relaxed">{translatedDesc}</p>
+              <p className="text-[11px] text-gray-400 mt-1.5 leading-relaxed">{mod.description}</p>
+            </>
+          ) : (
+            <p className="text-sm text-gray-600 leading-relaxed">{mod.description || '暂无描述'}</p>
           )}
           {translateError && (
             <p className="mt-1 text-xs text-red-400">翻译失败: {translateError}</p>
@@ -124,16 +164,22 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
         {/* Dependencies */}
         {mod.dependencies && mod.dependencies.length > 0 && (
           <div>
-            <p className="text-xs text-gray-400 mb-2">依赖</p>
+            <p className="text-xs text-gray-400 mb-2">依赖项</p>
             {mod.dependencies.map(dep => {
               const isMissing = missingDeps.includes(dep);
+              const depMod = allMods.find(m => m.id === dep);
+              const canJump = depMod && onSelectMod;
               return (
-                <div key={dep} className={`flex items-center gap-2 py-1.5 px-3 rounded-lg text-sm mb-1 ${
-                  isMissing ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'
-                }`}>
+                <div key={dep}
+                  onClick={canJump ? () => onSelectMod(depMod) : undefined}
+                  className={`flex items-center gap-2 py-1.5 px-3 rounded-lg text-sm mb-1 ${
+                    isMissing ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'
+                  } ${canJump ? 'cursor-pointer hover:ring-1 hover:ring-current/20 transition-all' : ''}`}>
                   {isMissing ? <AlertTriangle size={14} /> : <Box size={14} />}
-                  {dep}
-                  {isMissing && <span className="text-xs ml-auto">未安装/未启用</span>}
+                  <span className="flex-1 truncate">{depMod ? depMod.name : dep}</span>
+                  {isMissing && !depMod && <span className="text-[10px] ml-auto">未安装</span>}
+                  {isMissing && depMod && <span className="text-[10px] ml-auto">未启用</span>}
+                  {canJump && <ExternalLink size={12} className="flex-shrink-0 opacity-50" />}
                 </div>
               );
             })}

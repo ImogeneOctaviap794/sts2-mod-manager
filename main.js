@@ -29,10 +29,10 @@ function saveConfig(cfg) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    minWidth: 900,
-    minHeight: 600,
+    width: 1400,
+    height: 900,
+    minWidth: 1000,
+    minHeight: 700,
     frame: false,
     titleBarStyle: 'hidden',
     webPreferences: {
@@ -367,6 +367,32 @@ ipcMain.handle('mods:uninstall', (_, modInfo) => {
   }
 });
 
+function smartExtractZip(zipPath, modsDir) {
+  const zip = new AdmZip(zipPath);
+  const entries = zip.getEntries();
+  // Check if all entries share a common root folder
+  const topDirs = new Set();
+  let hasRootFile = false;
+  for (const entry of entries) {
+    const parts = entry.entryName.replace(/\\/g, '/').split('/');
+    if (parts.length === 1 && !entry.isDirectory) {
+      hasRootFile = true;
+      break;
+    }
+    if (parts[0]) topDirs.add(parts[0]);
+  }
+  if (!hasRootFile && topDirs.size === 1) {
+    // Already has a single root folder, extract directly
+    zip.extractAllTo(modsDir, true);
+  } else {
+    // Loose files — create subfolder from zip filename
+    const baseName = path.basename(zipPath, path.extname(zipPath));
+    const subDir = path.join(modsDir, baseName);
+    if (!fs.existsSync(subDir)) fs.mkdirSync(subDir, { recursive: true });
+    zip.extractAllTo(subDir, true);
+  }
+}
+
 ipcMain.handle('mods:install', async () => {
   const modsDir = getModsDir();
   if (!modsDir) return { success: false, error: 'Game path not set' };
@@ -382,8 +408,7 @@ ipcMain.handle('mods:install', async () => {
   const installed = [];
   for (const filePath of result.filePaths) {
     try {
-      const zip = new AdmZip(filePath);
-      zip.extractAllTo(modsDir, true);
+      smartExtractZip(filePath, modsDir);
       installed.push(path.basename(filePath));
     } catch (e) {
       return { success: false, error: `Failed to extract ${path.basename(filePath)}: ${e.message}` };
@@ -399,8 +424,7 @@ ipcMain.handle('mods:installDrop', async (_, filePaths) => {
   const installed = [];
   for (const filePath of filePaths) {
     try {
-      const zip = new AdmZip(filePath);
-      zip.extractAllTo(modsDir, true);
+      smartExtractZip(filePath, modsDir);
       installed.push(path.basename(filePath));
     } catch (e) {
       return { success: false, error: `Failed to extract ${path.basename(filePath)}: ${e.message}` };
@@ -453,6 +477,25 @@ ipcMain.handle('translate:text', async (_, text) => {
     return { success: false, error: e.message };
   }
 });
+
+// ── Translation persistence ──
+const TRANSLATIONS_PATH = path.join(process.env.APPDATA, 'STS2ModManager', 'translations.json');
+function loadTranslations() {
+  try {
+    if (fs.existsSync(TRANSLATIONS_PATH)) return JSON.parse(fs.readFileSync(TRANSLATIONS_PATH, 'utf-8'));
+  } catch (e) {}
+  return {};
+}
+function saveTranslations(data) {
+  try {
+    const dir = path.dirname(TRANSLATIONS_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(TRANSLATIONS_PATH, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (e) {}
+}
+
+ipcMain.handle('translations:load', () => loadTranslations());
+ipcMain.handle('translations:save', (_, data) => { saveTranslations(data); return true; });
 
 // ── Launch game ──
 const { exec } = require('child_process');

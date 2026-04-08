@@ -447,11 +447,45 @@ pub fn mods_uninstall(
     }
 }
 
-fn extract_zip_to(zip_path: &str, dest: &Path) -> Result<(), String> {
+fn smart_extract_zip(zip_path: &str, mods_dir: &Path) -> Result<(), String> {
     let file = fs::File::open(zip_path).map_err(|e| e.to_string())?;
     let mut archive = zip::ZipArchive::new(file).map_err(|e| e.to_string())?;
+
+    // Check if all entries share a single root folder
+    let mut top_dirs = std::collections::HashSet::new();
+    let mut has_root_file = false;
     for i in 0..archive.len() {
-        let mut entry = archive.by_index(i).map_err(|e| e.to_string())?;
+        let entry = archive.by_index(i).map_err(|e| e.to_string())?;
+        let name = entry.mangled_name();
+        let parts: Vec<_> = name.components().collect();
+        if parts.len() == 1 && !entry.is_dir() {
+            has_root_file = true;
+            break;
+        }
+        if let Some(first) = parts.first() {
+            top_dirs.insert(first.as_os_str().to_string_lossy().to_string());
+        }
+    }
+
+    let dest = if !has_root_file && top_dirs.len() == 1 {
+        // Already has a single root folder, extract directly
+        mods_dir.to_path_buf()
+    } else {
+        // Loose files — create subfolder from zip filename
+        let base_name = Path::new(zip_path)
+            .file_stem()
+            .map(|s| s.to_string_lossy().to_string())
+            .unwrap_or_else(|| "unknown_mod".to_string());
+        let sub_dir = mods_dir.join(&base_name);
+        let _ = fs::create_dir_all(&sub_dir);
+        sub_dir
+    };
+
+    // Re-open archive for extraction
+    let file2 = fs::File::open(zip_path).map_err(|e| e.to_string())?;
+    let mut archive2 = zip::ZipArchive::new(file2).map_err(|e| e.to_string())?;
+    for i in 0..archive2.len() {
+        let mut entry = archive2.by_index(i).map_err(|e| e.to_string())?;
         let out_path = dest.join(entry.mangled_name());
         if entry.is_dir() {
             let _ = fs::create_dir_all(&out_path);
@@ -507,7 +541,7 @@ pub async fn mods_install(
     let mut installed = Vec::new();
     for fp in &file_paths {
         let path_str = fp.to_string();
-        if let Err(e) = extract_zip_to(&path_str, &mods_dir) {
+        if let Err(e) = smart_extract_zip(&path_str, &mods_dir) {
             return Ok(ModResult {
                 success: false,
                 error: Some(format!("解压失败: {}", e)),
@@ -553,7 +587,7 @@ pub fn mods_install_drop(
     let mut installed = Vec::new();
 
     for fp in &file_paths {
-        if let Err(e) = extract_zip_to(fp, &mods_dir) {
+        if let Err(e) = smart_extract_zip(fp, &mods_dir) {
             return ModResult {
                 success: false,
                 error: Some(format!("解压失败: {}", e)),
@@ -707,7 +741,7 @@ pub async fn mods_restore(
     match file {
         Some(path) => {
             let path_str = path.to_string();
-            if let Err(e) = extract_zip_to(&path_str, &mods_dir) {
+            if let Err(e) = smart_extract_zip(&path_str, &mods_dir) {
                 return Ok(ModResult {
                     success: false,
                     error: Some(e),

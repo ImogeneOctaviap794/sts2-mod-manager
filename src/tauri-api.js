@@ -91,6 +91,8 @@ window.api = {
 
   // Translate
   translateText: (text) => invoke('translate_text', { text }),
+  loadTranslations: () => invoke('translations_load'),
+  saveTranslations: (data) => invoke('translations_save', { data }),
 
   // Saves
   scanSaves: () => invoke('saves_scan'),
