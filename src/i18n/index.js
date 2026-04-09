@@ -30,14 +30,30 @@ export const I18nProvider = ({ children }) => {
   const [translations, setTranslations] = useState(translations_en);
 
   useEffect(() => {
-    // Try to detect system language
-    const systemLang = navigator.language.split('-')[0];
-    const supportedLangs = ['en', 'zh'];
-    const lang = supportedLangs.includes(systemLang) ? systemLang : 'en';
-    setLanguage(LanguageContext.create(lang));
-    
-    // Load appropriate translations
-    loadTranslations(lang);
+    const initLanguage = async () => {
+      try {
+        // Try to get saved language from config
+        if (window.api && window.api.getLanguage) {
+          const savedLang = await window.api.getLanguage();
+          if (savedLang && ['en', 'zh'].includes(savedLang)) {
+            setLanguage(LanguageContext.create(savedLang));
+            loadTranslations(savedLang);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Could not get saved language:', err);
+      }
+
+      // Fallback: detect system language
+      const systemLang = navigator.language.split('-')[0];
+      const supportedLangs = ['en', 'zh'];
+      const lang = supportedLangs.includes(systemLang) ? systemLang : 'en';
+      setLanguage(LanguageContext.create(lang));
+      loadTranslations(lang);
+    };
+
+    initLanguage();
   }, []);
 
   const loadTranslations = async (lang) => {
@@ -47,7 +63,6 @@ export const I18nProvider = ({ children }) => {
       } else if (lang === 'zh') {
         setTranslations(translations_zh);
       }
-      // Add more languages here as needed
     } catch (err) {
       console.error('Failed to load translations:', err);
       setTranslations(translations_en);
@@ -75,9 +90,18 @@ export const I18nProvider = ({ children }) => {
     return value;
   };
 
-  const changeLanguage = (lang) => {
+  const changeLanguage = async (lang) => {
     setLanguage(LanguageContext.create(lang));
     loadTranslations(lang);
+
+    // Persist to backend
+    try {
+      if (window.api && window.api.setLanguage) {
+        await window.api.setLanguage(lang);
+      }
+    } catch (err) {
+      console.error('Failed to save language preference:', err);
+    }
   };
 
   return (
