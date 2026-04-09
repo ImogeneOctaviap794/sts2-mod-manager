@@ -28,6 +28,8 @@ pub fn run() {
             // App
             config::app_init,
             config::app_select_game_path,
+            config::get_language,
+            config::set_language,
             // Window
             window_minimize,
             window_maximize,

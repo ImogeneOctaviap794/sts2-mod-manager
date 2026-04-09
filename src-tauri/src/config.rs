@@ -8,6 +8,12 @@ use tauri_plugin_dialog::DialogExt;
 pub struct Config {
     #[serde(rename = "gamePath")]
     pub game_path: Option<String>,
+    #[serde(rename = "language", default = "default_language")]
+    pub language: String,
+}
+
+fn default_language() -> String {
+    "en".to_string()
 }
 
 #[derive(Serialize)]
@@ -168,4 +174,18 @@ pub async fn app_select_game_path(
     } else {
         Ok(None)
     }
+}
+
+#[tauri::command]
+pub fn get_language() -> String {
+    let cfg = load_config();
+    cfg.language
+}
+
+#[tauri::command]
+pub fn set_language(language: String) -> Result<(), String> {
+    let mut cfg = load_config();
+    cfg.language = language;
+    save_config(&cfg);
+    Ok(())
 }

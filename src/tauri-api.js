@@ -44,6 +44,8 @@ window.api = {
   // App
   init: () => invoke('app_init'),
   selectGamePath: () => invoke('app_select_game_path'),
+  getLanguage: () => invoke('get_language'),
+  setLanguage: (language) => invoke('set_language', { language }),
 
   // Window
   minimize: () => invoke('window_minimize'),

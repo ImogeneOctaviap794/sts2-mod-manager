@@ -1004,15 +1004,6 @@ function getSaveBackupDir() {
   return dir;
 }
 
-const CHARACTER_NAMES = {
-  'CHARACTER.IRONCLAD': '铁甲战士',
-  'CHARACTER.SILENT': '沉默猎手',
-  'CHARACTER.REGENT': '摄政王',
-  'CHARACTER.NECROBINDER': '缚灵师',
-  'CHARACTER.DEFECT': '缺陷体',
-  'CHARACTER.WATCHER': '观察者',
-};
-
 function parseProgressSummary(progressPath) {
   if (!fs.existsSync(progressPath)) return null;
   try {
@@ -1020,7 +1011,6 @@ function parseProgressSummary(progressPath) {
     const data = JSON.parse(raw);
     const characters = (data.character_stats || []).map(c => ({
       id: c.id,
-      name: CHARACTER_NAMES[c.id] || c.id?.split('.')[1] || c.id,
       wins: c.total_wins || 0,
       losses: c.total_losses || 0,
       maxAscension: c.max_ascension || 0,

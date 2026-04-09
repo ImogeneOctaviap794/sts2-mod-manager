@@ -107,24 +107,6 @@ fn get_save_backup_dir() -> PathBuf {
     dir
 }
 
-const CHARACTER_NAMES: &[(&str, &str)] = &[
-    ("CHARACTER.IRONCLAD", "铁甲战士"),
-    ("CHARACTER.SILENT", "沉默猎手"),
-    ("CHARACTER.REGENT", "摄政王"),
-    ("CHARACTER.NECROBINDER", "缚灵师"),
-    ("CHARACTER.DEFECT", "缺陷体"),
-    ("CHARACTER.WATCHER", "观察者"),
-];
-
-fn char_name(id: &str) -> String {
-    for (k, v) in CHARACTER_NAMES {
-        if *k == id {
-            return v.to_string();
-        }
-    }
-    id.split('.').last().unwrap_or(id).to_string()
-}
-
 fn parse_progress(path: &Path) -> Option<ProgressSummary> {
     if !path.exists() {
         return None;
@@ -148,7 +130,7 @@ fn parse_progress(path: &Path) -> Option<ProgressSummary> {
                         return None;
                     }
                     Some(CharacterStat {
-                        name: char_name(&id),
+                        name: id.clone(),
                         id,
                         wins,
                         losses,

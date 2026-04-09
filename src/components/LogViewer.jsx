@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../i18n';
 import { FileText, RefreshCw, ChevronDown } from 'lucide-react';
 
 function colorLine(line) {
@@ -11,6 +12,7 @@ function colorLine(line) {
 const MAX_VISIBLE_LINES = 2000;
 
 export default function LogViewer() {
+  const { t } = useTranslation();
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState('');
   const [content, setContent] = useState('');
@@ -55,22 +57,22 @@ export default function LogViewer() {
       <div className="px-8 pt-6 pb-4">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold">游戏日志</h1>
+            <h1 className="text-2xl font-bold">{t('logViewer.title', 'Game Logs')}</h1>
             <p className="text-sm text-gray-500 mt-1">
-              {errorCount > 0 && <span className="text-red-500 font-medium">{errorCount} 个错误</span>}
+              {errorCount > 0 && <span className="text-red-500 font-medium">{t('logViewer.errorsCount', '{count} errors', { count: errorCount })}</span>}
               {errorCount > 0 && warnCount > 0 && ' · '}
-              {warnCount > 0 && <span className="text-amber-500 font-medium">{warnCount} 个警告</span>}
-              {errorCount === 0 && warnCount === 0 && '暂无错误或警告'}
+              {warnCount > 0 && <span className="text-amber-500 font-medium">{t('logViewer.warningsCount', '{count} warnings', { count: warnCount })}</span>}
+              {errorCount === 0 && warnCount === 0 && t('logViewer.noIssues', 'No errors or warnings')}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={loadLogs}
               className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">
-              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> 刷新
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> {t('logViewer.refresh', 'Refresh')}
             </button>
             <button onClick={() => window.api.openLogsDir()}
               className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">
-              <FileText size={16} /> 打开文件夹
+              <FileText size={16} /> {t('logViewer.openFolder', 'Open Folder')}
             </button>
           </div>
         </div>
@@ -88,7 +90,7 @@ export default function LogViewer() {
 
           {/* Filter */}
           <div className="flex bg-gray-100 rounded-lg p-0.5">
-            {[['all', '全部'], ['warn', '警告+'], ['error', '仅错误']].map(([key, label]) => (
+            {[['all', t('logViewer.filter.all', 'All')], ['warn', t('logViewer.filter.warn', 'Warnings+')], ['error', t('logViewer.filter.error', 'Errors only')]].map(([key, label]) => (
               <button key={key}
                 onClick={() => setFilterLevel(key)}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
@@ -104,7 +106,7 @@ export default function LogViewer() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="搜索日志..."
+            placeholder={t('logViewer.searchPlaceholder', 'Search logs...')}
             className="flex-1 max-w-xs px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
           />
         </div>
@@ -124,11 +126,11 @@ export default function LogViewer() {
               <button
                 onClick={() => setVisibleCount(c => c + MAX_VISIBLE_LINES)}
                 className="w-full px-4 py-3 text-center text-sm text-blue-600 hover:bg-blue-50 transition-colors">
-                还有 {lines.length - visibleCount} 行，点击加载更多
+                {t('logViewer.loadMore', 'Load {count} more lines', { count: lines.length - visibleCount })}
               </button>
             )}
             {lines.length === 0 && (
-              <div className="px-4 py-8 text-center text-gray-400">暂无日志内容</div>
+              <div className="px-4 py-8 text-center text-gray-400">{t('logViewer.noLogs', 'No log content')}</div>
             )}
           </div>
         </div>

@@ -1,0 +1,282 @@
+{
+  "titleBar": {
+    "appName": "STS2 Mod Manager",
+    "selectLanguage": "Select Language",
+    "language": {
+      "en": "English",
+      "zh": "Chinese"
+    },
+    "github": "GitHub"
+  },
+  "sidebar": {
+    "nav": {
+      "mods": "Mod Management",
+      "saves": "Save Management",
+      "logs": "Game Logs"
+    },
+    "quickAccess": {
+      "nexus": "Nexus Mods",
+      "modsDir": "Mods Folder",
+      "logsDir": "Logs Folder",
+      "savesDir": "Saves Folder"
+    },
+    "sections": {
+      "navigation": "Navigation",
+      "quickAccess": "Quick Access"
+    },
+    "gamePath": "Game Path",
+    "change": "Change",
+    "clickSelectGameDir": "Click to select game directory",
+    "modsEnabledCount": "{enabled}/{total} mods enabled",
+    "gameVersion": "Game Version: {version}",
+    "selectGameDir": "Click to select game directory"
+  },
+  "logViewer": {
+    "title": "Game Logs",
+    "errorsCount": "{count} errors",
+    "warningsCount": "{count} warnings",
+    "noIssues": "No errors or warnings",
+    "refresh": "Refresh",
+    "openFolder": "Open Folder",
+    "filter": {
+      "all": "All",
+      "warn": "Warnings+",
+      "error": "Errors Only"
+    },
+    "searchPlaceholder": "Search logs...",
+    "loadMore": "{count} more lines, click to load more",
+    "noLogs": "No log content available"
+  },
+  "modCard": {
+    "framework": "Framework",
+    "gameplay": "Gameplay",
+    "resources": "Resources",
+    "missingDepsBanner": "Missing dependencies, may not work properly: {deps}",
+    "clickDisable": "Click to disable",
+    "clickEnable": "Click to enable",
+    "noDescription": "No description available",
+    "disabled": "Disabled",
+    "dependencies": "{count} dependencies"
+  },
+  "modDetail": {
+    "status": "Status",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "missingDeps": "Missing Dependencies",
+    "author": "Author",
+    "version": "Version",
+    "size": "Size",
+    "type": "Type",
+    "folderMod": "Folder Mod",
+    "standaloneMod": "Standalone Mod",
+    "description": "Description",
+    "translate": "Translate",
+    "translating": "Translating...",
+    "retranslate": "Retranslate",
+    "noDescription": "No description available",
+    "translateFailed": "Translation failed: {error}",
+    "dependencies": "Dependencies",
+    "notInstalled": "Not Installed",
+    "notEnabled": "Not Enabled",
+    "dependentsWarning": "⚠ The following mods depend on this mod",
+    "files": "File List",
+    "disableMod": "Disable Mod",
+    "enableMod": "Enable Mod",
+    "uninstallMod": "Uninstall Mod"
+  },
+  "modListItem": {
+    "framework": "Framework",
+    "gameplay": "Gameplay",
+    "resources": "Resources",
+    "missingDeps": "Missing Deps",
+    "unknown": "Unknown",
+    "clickDisable": "Click to disable",
+    "clickEnable": "Click to enable"
+  },
+  "profileManager": {
+    "title": "Profiles",
+    "description": "Save and switch between different mod enable combinations",
+    "saveCurrentConfig": "Save Current Configuration",
+    "namePlaceholder": "Enter profile name (e.g., \"Online Save\", \"All Mods\")",
+    "save": "Save",
+    "currentModsEnabled": "Currently {count} mods enabled: {names}",
+    "none": "None",
+    "noProfiles": "No profiles available",
+    "saveCurrentModsAsProfile": "Save current mod combination as a profile",
+    "savedAt": "{date} · {count} mods",
+    "apply": "Apply",
+    "delete": "Delete",
+    "toast": {
+      "saved": "Profile \"{name}\" saved",
+      "applied": "Profile \"{name}\" applied",
+      "deleted": "Profile \"{name}\" deleted"
+    }
+  },
+  "saveManager": {
+    "gameTime": "Game Time",
+    "score": "Score",
+    "floors": "Floors Climbed",
+    "discovery": "Discovery",
+    "cardLabel": "Cards",
+    "relicLabel": "Relics",
+    "characterStats": "Character Stats",
+    "completedRuns": "Completed {count} runs",
+    "stats": {
+      "playtime": "Playtime",
+      "score": "Score",
+      "floors": "Floors Climbed",
+      "discovery": "Discovery",
+      "discoveryCount": "{cards} Cards / {relics} Relics",
+      "characterRecord": "Character Record",
+      "wins": "{count} Wins",
+      "losses": "{count} Losses",
+      "epochs": "Completed {count} runs"
+    },
+    "duration": {
+      "zero": "0 minutes",
+      "hoursMinutes": "{hours} hours {minutes} minutes",
+      "minutes": "{minutes} minutes"
+    },
+    "slot1": "Save Slot 1",
+    "slot2": "Save Slot 2",
+    "slot3": "Save Slot 3",
+    "slot": {
+      "empty": "Empty",
+      "hasData": "Has Data",
+      "sizeLabel": "Size",
+      "lastModifiedLabel": "Last Modified",
+      "noData": "No save data available"
+    },
+    "export": "Export",
+    "import": "Import",
+    "exportSuccess": "Save exported successfully",
+    "importSuccess": "Save imported successfully (original save backed up automatically)",
+    "backupDeleted": "Backup deleted",
+    "title": "Save Management",
+    "subtitle": "Export, import, and backup your game saves",
+    "refresh": "Refresh",
+    "openFolder": "Open Folder",
+    "normalSaves": "Normal Saves",
+    "moddedSaves": "Modded Saves",
+    "backupRecords": "Auto Backup Records",
+    "noSaves": "No game saves detected",
+    "noSavesHint": "Please run the game once to create the save directory",
+    "backupDeleteTitle": "Delete Backup"
+  },
+  "app": {
+    "modManagement": "Mod Management",
+    "modSummary": "Total {total} mods · {enabled} enabled · {disabled} disabled",
+    "installMod": "Install Mod",
+    "refresh": "Refresh",
+    "profiles": "Profiles",
+    "currentEnabledMods": "Currently {count} mods enabled",
+    "profileNamePlaceholder": "Enter profile name...",
+    "noConfig": "No configuration",
+    "apply": "Apply",
+    "launchGame": "Launch Game",
+    "launching": "Launching...",
+    "running": "Game Running",
+    "searchPlaceholder": "Search mod name, author...",
+    "filter": {
+      "all": "All",
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "sort": {
+      "name": "Name",
+      "depIssues": "Dependency Issues",
+      "gameplay": "Affects Gameplay",
+      "category": "Category",
+      "size": "Size",
+      "nameOption": "By Name",
+      "depIssuesOption": "Dependency Issues First",
+      "gameplayOption": "Affects Gameplay First",
+      "categoryOption": "By Category",
+      "sizeOption": "By Size"
+    },
+    "view": {
+      "grid": "Grid View",
+      "list": "List View"
+    },
+    "modFolder": "Mod Folder",
+    "gameDir": "Game Directory",
+    "backup": "Backup",
+    "restore": "Restore",
+    "selectedCount": "{count} selected",
+    "enable": "Enable",
+    "disable": "Disable",
+    "uninstall": "Uninstall",
+    "welcome": "Welcome to STS2 Mod Manager",
+    "getStarted": "Follow these steps to start managing your mods",
+    "steps": {
+      "chooseGameDir": {
+        "title": "1. Choose Game Directory",
+        "detail": "Locate your Slay the Spire 2 installation"
+      },
+      "installFirstMod": {
+        "title": "2. Install First Mod",
+        "detail": "Drag in a ZIP file or click install button"
+      },
+      "launchVerify": {
+        "title": "3. Launch and Verify",
+        "detail": "Launch the game to confirm mods load properly"
+      }
+    },
+    "troubleshooting": "Having issues? Check the \"Game Logs\" in the sidebar for crash analysis",
+    "gameDetected": "Game Detected",
+    "nextInstallFirstMod": "Next, install your first mod",
+    "installFirstModStep": "2. Install First Mod",
+    "installFirstModHint": "Drag in a ZIP file or click here to select",
+    "launchVerifyDisabled": "3. Launch and Verify",
+    "launchVerifyHint": "Supports .zip format, can also drag directly to any window position",
+    "noMatchOrNone": "{message}",
+    "selectModToViewDetail": "Select a mod to view details",
+    "dragDropInstallHint": "Drag and drop ZIP files to install mods",
+    "noGamePath": "Game path not detected",
+    "selectGameDirectory": "Select Game Directory",
+    "notFoundMods": "No matching mods found",
+    "noMods": "No mods available",
+    "dragZipInstall": "Drag ZIP files here to install",
+    "seeFullLogs": "View Full Logs",
+    "close": "Close",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "uninstallTitle": "Uninstall {modName}",
+    "uninstallDependentMessage": "This mod is depended on by {dependents}, uninstalling may cause those mods to malfunction. Continue?",
+    "uninstallConfirmMessage": "Are you sure you want to uninstall \"{modName}\"? Files will be deleted after uninstall.",
+    "batchToggleAction": "Batch {action} {count} mods",
+    "batchUninstallAction": "Batch uninstalled {count} mods",
+    "restoreTitle": "Restore Mod Backup",
+    "restoreMessage": "Restoring will overwrite the current mods folder with backup files, existing mods may be replaced. Continue?",
+    "dropZipOrFolderError": "Please drag in a .zip archive or mod folder",
+    "gamePathNotDetected": "Game path not detected",
+    "chooseGameDirectory": "Choose Game Directory"
+  },
+  "toast": {
+    "archiveSuccess": "Backup completed",
+    "restoreSuccess": "Restore completed",
+    "exportSaveSuccess": "Save exported successfully",
+    "importSaveSuccess": "Save imported successfully (original save backed up automatically)",
+    "backupDeleted": "Backup deleted"
+  },
+  "crashReport": {
+    "title": "Game Exit Analysis",
+    "errors": "Errors",
+    "warnings": "Warnings",
+    "issuesDetected": "Issues Detected",
+    "noCrashReason": "No clear crash reason detected",
+    "noCrashReasonDetail": "May be a normal exit, or check full logs for more information",
+    "involvedMods": "Involved Mods",
+    "harmlessNotices": "Harmless Notices (can be ignored)"
+  },
+  "characters": {
+    "CHARACTER": {
+      "IRONCLAD": "Ironclad",
+      "SILENT": "Silent",
+      "DEFECT": "Defect",
+      "WATCHER-WATCHER": "Watcher",
+      "REGENT": "Regent",
+      "NECROBINDER": "Necrobinder"
+    }
+  }
+}
