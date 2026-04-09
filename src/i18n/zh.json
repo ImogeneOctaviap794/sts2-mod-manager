@@ -1,0 +1,282 @@
+{
+  "titleBar": {
+    "appName": "STS2 Mod Manager",
+    "selectLanguage": "选择语言",
+    "language": {
+      "en": "English",
+      "zh": "中文"
+    },
+    "github": "GitHub"
+  },
+  "sidebar": {
+    "nav": {
+      "mods": "MOD 管理",
+      "saves": "存档管理",
+      "logs": "游戏日志"
+    },
+    "quickAccess": {
+      "nexus": "Nexus Mods",
+      "modsDir": "MOD 文件夹",
+      "logsDir": "日志文件夹",
+      "savesDir": "存档文件夹"
+    },
+    "sections": {
+      "navigation": "导航",
+      "quickAccess": "快速访问"
+    },
+    "gamePath": "游戏路径",
+    "change": "更改",
+    "clickSelectGameDir": "点击选择游戏目录",
+    "modsEnabledCount": "{enabled}/{total} MOD 已启用",
+    "gameVersion": "游戏版本: {version}",
+    "selectGameDir": "点击选择游戏目录"
+  },
+  "logViewer": {
+    "title": "游戏日志",
+    "errorsCount": "{count} 个错误",
+    "warningsCount": "{count} 个警告",
+    "noIssues": "暂无错误或警告",
+    "refresh": "刷新",
+    "openFolder": "打开文件夹",
+    "filter": {
+      "all": "全部",
+      "warn": "警告+",
+      "error": "仅错误"
+    },
+    "searchPlaceholder": "搜索日志...",
+    "loadMore": "还有 {count} 行，点击加载更多",
+    "noLogs": "暂无日志内容"
+  },
+  "modCard": {
+    "framework": "框架前置",
+    "gameplay": "玩法改动",
+    "resources": "资源类",
+    "missingDepsBanner": "缺失依赖，无法正常工作：{deps}",
+    "clickDisable": "点击禁用",
+    "clickEnable": "点击启用",
+    "noDescription": "暂无描述",
+    "disabled": "已禁用",
+    "dependencies": "{count} 依赖"
+  },
+  "modDetail": {
+    "status": "状态",
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "missingDeps": "缺失依赖",
+    "author": "作者",
+    "version": "版本",
+    "size": "大小",
+    "type": "类型",
+    "folderMod": "文件夹 MOD",
+    "standaloneMod": "独立文件 MOD",
+    "description": "描述",
+    "translate": "翻译",
+    "translating": "翻译中...",
+    "retranslate": "重新翻译",
+    "noDescription": "暂无描述",
+    "translateFailed": "翻译失败: {error}",
+    "dependencies": "依赖项",
+    "notInstalled": "未安装",
+    "notEnabled": "未启用",
+    "dependentsWarning": "⚠ 以下 MOD 依赖此 MOD",
+    "files": "文件列表",
+    "disableMod": "禁用 MOD",
+    "enableMod": "启用 MOD",
+    "uninstallMod": "卸载 MOD"
+  },
+  "modListItem": {
+    "framework": "框架",
+    "gameplay": "玩法",
+    "resources": "资源",
+    "missingDeps": "缺依赖",
+    "unknown": "未知",
+    "clickDisable": "点击禁用",
+    "clickEnable": "点击启用"
+  },
+  "profileManager": {
+    "title": "配置档案",
+    "description": "保存和切换不同的 MOD 启用组合",
+    "saveCurrentConfig": "保存当前配置",
+    "namePlaceholder": "输入配置名称（如\"联机档\"、\"全MOD\"）",
+    "save": "保存",
+    "currentModsEnabled": "当前 {count} 个 MOD 已启用：{names}",
+    "none": "无",
+    "noProfiles": "暂无配置档案",
+    "saveCurrentModsAsProfile": "保存当前 MOD 组合作为一个配置",
+    "savedAt": "{date} · {count} 个 MOD",
+    "apply": "应用",
+    "delete": "删除",
+    "toast": {
+      "saved": "配置 \"{name}\" 已保存",
+      "applied": "配置 \"{name}\" 已应用",
+      "deleted": "配置 \"{name}\" 已删除"
+    }
+  },
+  "saveManager": {
+    "gameTime": "游戏时长",
+    "score": "得分",
+    "floors": "爬塔层数",
+    "discovery": "发现",
+    "cardLabel": "卡",
+    "relicLabel": "遗物",
+    "characterStats": "角色战绩",
+    "completedRuns": "共完成 {count} 轮游戏",
+    "stats": {
+      "playtime": "游戏时长",
+      "score": "得分",
+      "floors": "爬塔层数",
+      "discovery": "发现",
+      "discoveryCount": "{cards} 卡 / {relics} 遗物",
+      "characterRecord": "角色战绩",
+      "wins": "{count} 胜",
+      "losses": "{count} 负",
+      "epochs": "共完成 {count} 轮游戏"
+    },
+    "duration": {
+      "zero": "0 分钟",
+      "hoursMinutes": "{hours} 小时 {minutes} 分钟",
+      "minutes": "{minutes} 分钟"
+    },
+    "slot1": "存档 1",
+    "slot2": "存档 2",
+    "slot3": "存档 3",
+    "slot": {
+      "empty": "空",
+      "hasData": "有数据",
+      "sizeLabel": "大小",
+      "lastModifiedLabel": "最后修改",
+      "noData": "暂无存档数据"
+    },
+    "export": "导出",
+    "import": "导入",
+    "exportSuccess": "存档导出成功",
+    "importSuccess": "存档导入成功（已自动备份原存档）",
+    "backupDeleted": "备份已删除",
+    "title": "存档管理",
+    "subtitle": "导出、导入和备份你的游戏存档",
+    "refresh": "刷新",
+    "openFolder": "打开文件夹",
+    "normalSaves": "普通存档",
+    "moddedSaves": "MOD 存档",
+    "backupRecords": "自动备份记录",
+    "noSaves": "未检测到游戏存档",
+    "noSavesHint": "请先运行一次游戏以创建存档目录",
+    "backupDeleteTitle": "删除备份"
+  },
+  "app": {
+    "modManagement": "MOD 管理",
+    "modSummary": "共 {total} 个 MOD · {enabled} 已启用 · {disabled} 已禁用",
+    "installMod": "安装 MOD",
+    "refresh": "刷新",
+    "profiles": "档案",
+    "currentEnabledMods": "当前 {count} 个 MOD 已启用",
+    "profileNamePlaceholder": "输入配置名称...",
+    "noConfig": "暂无配置",
+    "apply": "应用",
+    "launchGame": "启动游戏",
+    "launching": "正在启动...",
+    "running": "游戏运行中",
+    "searchPlaceholder": "搜索 MOD 名称、作者...",
+    "filter": {
+      "all": "全部",
+      "enabled": "已启用",
+      "disabled": "已禁用"
+    },
+    "sort": {
+      "name": "名称",
+      "depIssues": "依赖问题",
+      "gameplay": "影响玩法",
+      "category": "分类",
+      "size": "大小",
+      "nameOption": "按名称",
+      "depIssuesOption": "依赖问题优先",
+      "gameplayOption": "影响玩法优先",
+      "categoryOption": "按分类",
+      "sizeOption": "按大小"
+    },
+    "view": {
+      "grid": "卡片视图",
+      "list": "列表视图"
+    },
+    "modFolder": "MOD 文件夹",
+    "gameDir": "游戏目录",
+    "backup": "备份",
+    "restore": "还原",
+    "selectedCount": "已选 {count} 个",
+    "enable": "启用",
+    "disable": "禁用",
+    "uninstall": "卸载",
+    "welcome": "欢迎使用 STS2 Mod Manager",
+    "getStarted": "按以下步骤开始管理你的 MOD",
+    "steps": {
+      "chooseGameDir": {
+        "title": "1. 选择游戏目录",
+        "detail": "定位你的 Slay the Spire 2 安装位置"
+      },
+      "installFirstMod": {
+        "title": "2. 安装第一个 MOD",
+        "detail": "拖入 ZIP 文件或点击安装按钮"
+      },
+      "launchVerify": {
+        "title": "3. 启动并验证",
+        "detail": "启动游戏确认 MOD 正常加载"
+      }
+    },
+    "troubleshooting": "遇到问题？查看侧边栏「游戏日志」获取崩溃分析",
+    "gameDetected": "游戏已识别",
+    "nextInstallFirstMod": "接下来安装你的第一个 MOD",
+    "installFirstModStep": "2. 安装第一个 MOD",
+    "installFirstModHint": "拖入 ZIP 文件或点击此处选择",
+    "launchVerifyDisabled": "3. 启动并验证",
+    "launchVerifyHint": "支持 .zip 格式，也可以直接拖放到窗口任意位置",
+    "noMatchOrNone": "{message}",
+    "selectModToViewDetail": "选择一个 MOD 查看详情",
+    "dragDropInstallHint": "拖放 ZIP 文件安装 MOD",
+    "noGamePath": "未检测到游戏路径",
+    "selectGameDirectory": "选择游戏目录",
+    "notFoundMods": "没有找到匹配的 MOD",
+    "noMods": "暂无 MOD",
+    "dragZipInstall": "拖拽 ZIP 文件到此处安装",
+    "seeFullLogs": "查看完整日志",
+    "close": "关闭",
+    "confirm": "确认",
+    "cancel": "取消",
+    "uninstallTitle": "卸载 {modName}",
+    "uninstallDependentMessage": "此 MOD 被 {dependents} 依赖，卸载后这些 MOD 可能无法正常工作。确定继续？",
+    "uninstallConfirmMessage": "确定要卸载 \"{modName}\" 吗？卸载后文件将被删除。",
+    "batchToggleAction": "已批量{action} {count} 个 MOD",
+    "batchUninstallAction": "已批量卸载 {count} 个 MOD",
+    "restoreTitle": "还原 MOD 备份",
+    "restoreMessage": "还原会用备份文件覆盖当前 mods 文件夹，现有 MOD 可能被替换。确定继续？",
+    "dropZipOrFolderError": "请拖入 .zip 压缩包或 MOD 文件夹",
+    "gamePathNotDetected": "未检测到游戏路径",
+    "chooseGameDirectory": "选择游戏目录"
+  },
+  "toast": {
+    "archiveSuccess": "备份完成",
+    "restoreSuccess": "还原完成",
+    "exportSaveSuccess": "存档导出成功",
+    "importSaveSuccess": "存档导入成功（已自动备份原存档）",
+    "backupDeleted": "备份已删除"
+  },
+  "crashReport": {
+    "title": "游戏退出分析",
+    "errors": "错误",
+    "warnings": "警告",
+    "issuesDetected": "检测到的问题",
+    "noCrashReason": "未检测到明确的崩溃原因",
+    "noCrashReasonDetail": "可能是正常退出，或者查看完整日志获取更多信息",
+    "involvedMods": "涉及的 MOD",
+    "harmlessNotices": "无害提示（可忽略）"
+  },
+  "characters": {
+    "CHARACTER": {
+      "IRONCLAD": "铁甲战士",
+      "SILENT": "沉默猎手",
+      "DEFECT": "缺陷体",
+      "WATCHER-WATCHER": "观察者",
+      "REGENT": "摄政王",
+      "NECROBINDER": "缚灵师"
+    }
+  }
+}

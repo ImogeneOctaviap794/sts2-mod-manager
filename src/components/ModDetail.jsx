@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../i18n';
 import { X, ToggleLeft, ToggleRight, Trash2, AlertTriangle, FileText, Box, Code, Languages, ExternalLink, Shield, Gamepad2, Palette } from 'lucide-react';
 
 function formatSize(bytes) {
@@ -14,12 +15,13 @@ function isChinese(text) {
 
 function getModCategory(mod, allMods) {
   const isDepForOthers = allMods.some(m => m.id !== mod.id && m.dependencies && m.dependencies.includes(mod.id));
-  if (isDepForOthers) return { label: '框架前置', color: 'bg-indigo-50 text-indigo-600', icon: Shield };
-  if (mod.affects_gameplay || mod.has_dll) return { label: '玩法改动', color: 'bg-amber-50 text-amber-700', icon: Gamepad2 };
-  return { label: '资源类', color: 'bg-teal-50 text-teal-600', icon: Palette };
+  if (isDepForOthers) return { labelKey: 'modCard.framework', label: 'Framework prerequisite', color: 'bg-indigo-50 text-indigo-600', icon: Shield };
+  if (mod.affects_gameplay || mod.has_dll) return { labelKey: 'modCard.gameplay', label: 'Gameplay change', color: 'bg-amber-50 text-amber-700', icon: Gamepad2 };
+  return { labelKey: 'modCard.resources', label: 'Asset type', color: 'bg-teal-50 text-teal-600', icon: Palette };
 }
 
 export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall, onSelectMod, onTranslationSaved }) {
+  const { t, language } = useTranslation();
   const enabledIds = allMods.filter(m => m.enabled).map(m => m.id);
   const missingDeps = (mod.dependencies || []).filter(d => !enabledIds.includes(d));
   const dependents = allMods.filter(m => m.dependencies && m.dependencies.includes(mod.id) && m.enabled);
@@ -88,8 +90,8 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
         <div className="min-w-0 flex-1 mr-2">
-          <h2 className="font-bold text-base truncate">{translatedName || mod.name}</h2>
-          {translatedName && <p className="text-[11px] text-gray-400 truncate">{mod.name}</p>}
+          <h2 className="font-bold text-base truncate">{language.canTranslate() && translatedName || mod.name}</h2>
+          {language.canTranslate() && translatedName && <p className="text-[11px] text-gray-400 truncate">{mod.name}</p>}
         </div>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0">
           <X size={18} />
@@ -99,11 +101,11 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
         {/* Status */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">状态</span>
+          <span className="text-sm text-gray-500">{t('modDetail.status', 'Status')}</span>
           <button onClick={onToggle} className="flex items-center gap-2">
             {mod.enabled
-              ? <><span className="text-sm text-emerald-600 font-medium">已启用</span><ToggleRight size={24} className="text-emerald-500" /></>
-              : <><span className="text-sm text-gray-400 font-medium">已禁用</span><ToggleLeft size={24} className="text-gray-300" /></>
+              ? <><span className="text-sm text-emerald-600 font-medium">{t('modDetail.enabled', 'Enabled')}</span><ToggleRight size={24} className="text-emerald-500" /></>
+              : <><span className="text-sm text-gray-400 font-medium">{t('modDetail.disabled', 'Disabled')}</span><ToggleLeft size={24} className="text-gray-300" /></>
             }
           </button>
         </div>
@@ -111,11 +113,11 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
         {/* Category badge */}
         <div className="flex items-center gap-2">
           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${category.color}`}>
-            <CategoryIcon size={13} /> {category.label}
+            <CategoryIcon size={13} /> {t(category.labelKey, category.label)}
           </span>
           {missingDeps.length > 0 && mod.enabled && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-red-50 text-red-600">
-              <AlertTriangle size={13} /> 缺失依赖
+              <AlertTriangle size={13} /> {t('modDetail.missingDeps', 'Missing dependencies')}
             </span>
           )}
         </div>
@@ -124,10 +126,10 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
         <div className="space-y-3">
           {[
             ['ID', mod.id],
-            ['作者', mod.author || '未知'],
-            ['版本', mod.version || '未知'],
-            ['大小', formatSize(mod.size)],
-            ['类型', mod.isFolder ? '文件夹 MOD' : '独立文件 MOD'],
+            [t('modDetail.author', 'Author'), mod.author || t('modDetail.unknown', 'Unknown')],
+            [t('modDetail.version', 'Version'), mod.version || t('modDetail.unknown', 'Unknown')],
+            [t('modDetail.size', 'Size'), formatSize(mod.size)],
+            [t('modDetail.type', 'Type'), mod.isFolder ? t('modDetail.folderMod', 'Folder MOD') : t('modDetail.standaloneMod', 'Standalone MOD')],
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between">
               <span className="text-xs text-gray-400">{label}</span>
@@ -139,32 +141,32 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
         {/* Description */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <p className="text-xs text-gray-400">描述</p>
-            {hasEnglishContent && (
+            <p className="text-xs text-gray-400">{t('modDetail.description', 'Description')}</p>
+            {language.canTranslate() && hasEnglishContent && (
               <button onClick={handleTranslate} disabled={translating}
                 className="flex items-center gap-1 text-[11px] text-blue-500 hover:text-blue-700 disabled:text-gray-300 transition-colors">
                 <Languages size={12} />
-                {translating ? '翻译中...' : translatedDesc ? '重新翻译' : '翻译'}
+                {translating ? t('modDetail.translating', 'Translating...') : translatedDesc ? t('modDetail.retranslate', 'Retranslate') : t('modDetail.translate', 'Translate')}
               </button>
             )}
           </div>
-          {translatedDesc ? (
+          {language.canTranslate() && translatedDesc ? (
             <>
               <p className="text-sm text-gray-700 leading-relaxed">{translatedDesc}</p>
               <p className="text-[11px] text-gray-400 mt-1.5 leading-relaxed">{mod.description}</p>
             </>
           ) : (
-            <p className="text-sm text-gray-600 leading-relaxed">{mod.description || '暂无描述'}</p>
+            <p className="text-sm text-gray-600 leading-relaxed">{mod.description || t('modDetail.noDescription', 'No description')}</p>
           )}
-          {translateError && (
-            <p className="mt-1 text-xs text-red-400">翻译失败: {translateError}</p>
+          {language.canTranslate() && translateError && (
+            <p className="mt-1 text-xs text-red-400">{t('modDetail.translateFailed', 'Translation failed: {error}', { error: translateError })}</p>
           )}
         </div>
 
         {/* Dependencies */}
         {mod.dependencies && mod.dependencies.length > 0 && (
           <div>
-            <p className="text-xs text-gray-400 mb-2">依赖项</p>
+            <p className="text-xs text-gray-400 mb-2">{t('modDetail.dependencies', 'Dependencies')}</p>
             {mod.dependencies.map(dep => {
               const isMissing = missingDeps.includes(dep);
               const depMod = allMods.find(m => m.id === dep);
@@ -177,8 +179,8 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
                   } ${canJump ? 'cursor-pointer hover:ring-1 hover:ring-current/20 transition-all' : ''}`}>
                   {isMissing ? <AlertTriangle size={14} /> : <Box size={14} />}
                   <span className="flex-1 truncate">{depMod ? depMod.name : dep}</span>
-                  {isMissing && !depMod && <span className="text-[10px] ml-auto">未安装</span>}
-                  {isMissing && depMod && <span className="text-[10px] ml-auto">未启用</span>}
+                  {isMissing && !depMod && <span className="text-[10px] ml-auto">{t('modDetail.notInstalled', 'Not installed')}</span>}
+                  {isMissing && depMod && <span className="text-[10px] ml-auto">{t('modDetail.notEnabled', 'Not enabled')}</span>}
                   {canJump && <ExternalLink size={12} className="flex-shrink-0 opacity-50" />}
                 </div>
               );
@@ -189,7 +191,7 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
         {/* Dependents warning */}
         {dependents.length > 0 && (
           <div className="bg-amber-50 rounded-lg p-3">
-            <p className="text-xs text-amber-700 font-medium mb-1">⚠ 以下 MOD 依赖此 MOD</p>
+            <p className="text-xs text-amber-700 font-medium mb-1">{t('modDetail.dependentsWarning', '⚠ The following mods depend on this mod')}</p>
             {dependents.map(d => (
               <p key={d.id} className="text-xs text-amber-600">{d.name}</p>
             ))}
@@ -198,7 +200,7 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
 
         {/* Files */}
         <div>
-          <p className="text-xs text-gray-400 mb-2">文件列表</p>
+          <p className="text-xs text-gray-400 mb-2">{t('modDetail.files', 'File list')}</p>
           <div className="space-y-1">
             {(mod.files || []).map(f => (
               <div key={f} className="flex items-center gap-2 text-xs text-gray-500 py-1">
@@ -220,11 +222,11 @@ export default function ModDetail({ mod, allMods, onClose, onToggle, onUninstall
               ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               : 'bg-gray-900 text-white hover:bg-gray-800'
           }`}>
-          {mod.enabled ? '禁用 MOD' : '启用 MOD'}
+          {mod.enabled ? t('modDetail.disableMod', 'Disable MOD') : t('modDetail.enableMod', 'Enable MOD')}
         </button>
         <button onClick={onUninstall}
           className="w-full py-2 rounded-lg text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 transition-colors flex items-center justify-center gap-2">
-          <Trash2 size={14} /> 卸载 MOD
+          <Trash2 size={14} /> {t('modDetail.uninstallMod', 'Uninstall MOD')}
         </button>
       </div>
     </div>

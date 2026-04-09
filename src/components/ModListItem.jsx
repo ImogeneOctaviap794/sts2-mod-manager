@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../i18n';
 import { ToggleLeft, ToggleRight, AlertTriangle, GripVertical, Blocks, Gamepad2, Palette, Shield } from 'lucide-react';
 
 function formatSize(bytes) {
@@ -15,15 +16,16 @@ function getMissingDeps(mod, allMods) {
 
 function getModCategory(mod, allMods) {
   const isDepForOthers = allMods.some(m => m.id !== mod.id && m.dependencies && m.dependencies.includes(mod.id));
-  if (isDepForOthers) return { label: '框架', color: 'bg-indigo-50 text-indigo-600' };
-  if (mod.affects_gameplay || mod.has_dll) return { label: '玩法', color: 'bg-amber-50 text-amber-700' };
-  return { label: '资源', color: 'bg-teal-50 text-teal-600' };
+  if (isDepForOthers) return { labelKey: 'modListItem.framework', label: 'Framework', color: 'bg-indigo-50 text-indigo-600' };
+  if (mod.affects_gameplay || mod.has_dll) return { labelKey: 'modListItem.gameplay', label: 'Gameplay', color: 'bg-amber-50 text-amber-700' };
+  return { labelKey: 'modListItem.resources', label: 'Resource', color: 'bg-teal-50 text-teal-600' };
 }
 
 export default function ModListItem({ mod, allMods, translations, selected, multiSelected, onToggle, onClick, onCheckToggle, draggable }) {
+  const { t } = useTranslation();
   const missingDeps = getMissingDeps(mod, allMods);
   const category = getModCategory(mod, allMods);
-  const t = translations && translations[mod.id];
+  const modTranslation = translations && translations[mod.id];
 
   return (
     <div
@@ -50,18 +52,18 @@ export default function ModListItem({ mod, allMods, translations, selected, mult
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium truncate">{(t && t.name) || mod.name}</span>
+          <span className="text-sm font-medium truncate">{(modTranslation && modTranslation.name) || mod.name}</span>
           {missingDeps.length > 0 && mod.enabled && (
             <span className="flex items-center gap-0.5 text-[10px] text-red-500 font-medium flex-shrink-0">
-              <AlertTriangle size={11} /> 缺依赖
+              <AlertTriangle size={11} /> {t('modListItem.missingDeps', 'Missing deps')}
             </span>
           )}
         </div>
         <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[11px] text-gray-400 truncate">{mod.author || '未知'}</span>
+          <span className="text-[11px] text-gray-400 truncate">{mod.author || t('modListItem.unknown', 'Unknown')}</span>
           <span className="text-[11px] text-gray-300">v{mod.version}</span>
           {missingDeps.length > 0 && mod.enabled && (
-            <span className="text-[10px] text-red-400 truncate">缺少: {missingDeps.join(', ')}</span>
+            <span className="text-[10px] text-red-400 truncate">{t('modListItem.missing', 'Missing: {deps}', { deps: missingDeps.join(', ') })}</span>
           )}
         </div>
       </div>
@@ -77,7 +79,7 @@ export default function ModListItem({ mod, allMods, translations, selected, mult
         )}
         {mod.dependencies && mod.dependencies.length > 0 && (
           <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${missingDeps.length > 0 ? 'bg-red-50 text-red-500' : 'bg-orange-50 text-orange-500'}`}>
-            {mod.dependencies.length}依赖
+            {t('modCard.dependencies', '{count} deps', { count: mod.dependencies.length })}
           </span>
         )}
         <span className="text-[10px] text-gray-300 w-12 text-right">{formatSize(mod.size)}</span>
@@ -87,7 +89,7 @@ export default function ModListItem({ mod, allMods, translations, selected, mult
       <button
         onClick={(e) => { e.stopPropagation(); onToggle(); }}
         className="flex-shrink-0"
-        title={mod.enabled ? '点击禁用' : '点击启用'}
+        title={mod.enabled ? t('modCard.clickDisable', 'Click to disable') : t('modCard.clickEnable', 'Click to enable')}
       >
         {mod.enabled
           ? <ToggleRight size={24} className="text-emerald-500" />

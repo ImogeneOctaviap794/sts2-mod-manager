@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../i18n';
 import { ToggleLeft, ToggleRight, AlertTriangle, Blocks, Gamepad2, Palette, Shield } from 'lucide-react';
 
 function formatSize(bytes) {
@@ -20,16 +21,17 @@ function getMissingDeps(mod, allMods) {
 
 function getModCategory(mod, allMods) {
   const isDepForOthers = allMods.some(m => m.id !== mod.id && m.dependencies && m.dependencies.includes(mod.id));
-  if (isDepForOthers) return { label: '框架前置', color: 'bg-indigo-50 text-indigo-600', icon: Shield };
-  if (mod.affects_gameplay || mod.has_dll) return { label: '玩法改动', color: 'bg-amber-50 text-amber-700', icon: Gamepad2 };
-  return { label: '资源类', color: 'bg-teal-50 text-teal-600', icon: Palette };
+  if (isDepForOthers) return { labelKey: 'modCard.framework', label: 'Framework prerequisite', color: 'bg-indigo-50 text-indigo-600', icon: Shield };
+  if (mod.affects_gameplay || mod.has_dll) return { labelKey: 'modCard.gameplay', label: 'Gameplay change', color: 'bg-amber-50 text-amber-700', icon: Gamepad2 };
+  return { labelKey: 'modCard.resources', label: 'Asset type', color: 'bg-teal-50 text-teal-600', icon: Palette };
 }
 
 export default function ModCard({ mod, allMods, translations, onToggle, onClick, selected }) {
+  const { t, language } = useTranslation();
   const missingDeps = getMissingDeps(mod, allMods);
   const category = getModCategory(mod, allMods);
   const CategoryIcon = category.icon;
-  const t = translations && translations[mod.id];
+  const modTranslation = translations && translations[mod.id];
 
   return (
     <div
@@ -43,7 +45,7 @@ export default function ModCard({ mod, allMods, translations, onToggle, onClick,
         <div className="flex items-center gap-1.5 px-2.5 py-1.5 -mx-4 -mt-4 mb-3 bg-red-50 rounded-t-xl border-b border-red-100">
           <AlertTriangle size={12} className="text-red-500 flex-shrink-0" />
           <span className="text-[11px] text-red-600 font-medium truncate">
-            缺失依赖，无法正常工作：{missingDeps.map(d => d.id).join(', ')}
+            {t('modCard.missingDepsBanner', 'Missing dependencies: {deps}', { deps: missingDeps.map(d => d.id).join(', ') })}
           </span>
         </div>
       )}
@@ -52,7 +54,7 @@ export default function ModCard({ mod, allMods, translations, onToggle, onClick,
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-sm truncate">{(t && t.name) || mod.name}</h3>
+            <h3 className="font-semibold text-sm truncate">{(language.canTranslate() && modTranslation && modTranslation.name) || mod.name}</h3>
           </div>
           <p className="text-xs text-gray-400 mt-0.5">
             {mod.author} · v{mod.version}
@@ -61,7 +63,7 @@ export default function ModCard({ mod, allMods, translations, onToggle, onClick,
         <button
           onClick={(e) => { e.stopPropagation(); onToggle(); }}
           className="flex-shrink-0 ml-2"
-          title={mod.enabled ? '点击禁用' : '点击启用'}
+          title={mod.enabled ? t('modCard.clickDisable', 'Click to disable') : t('modCard.clickEnable', 'Click to enable')}
         >
           {mod.enabled
             ? <ToggleRight size={28} className="text-emerald-500" />
@@ -72,16 +74,16 @@ export default function ModCard({ mod, allMods, translations, onToggle, onClick,
 
       {/* Description */}
       <p className="text-xs text-gray-500 line-clamp-2 mb-3 leading-relaxed">
-        {(t && t.desc) || mod.description || '暂无描述'}
+        {(language.canTranslate() && modTranslation && modTranslation.desc) || mod.description || t('modCard.noDescription', 'No description')}
       </p>
 
       {/* Tags */}
       <div className="flex items-center gap-1.5 flex-wrap">
         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${category.color}`}>
-          <CategoryIcon size={11} /> {category.label}
+          <CategoryIcon size={11} /> {t(category.labelKey, category.label)}
         </span>
         {!mod.enabled && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-gray-100 text-gray-500">已禁用</span>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-gray-100 text-gray-500">{t('modCard.disabled', 'Disabled')}</span>
         )}
         {mod.has_dll && (
           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-blue-50 text-blue-600">DLL</span>
@@ -93,7 +95,7 @@ export default function ModCard({ mod, allMods, translations, onToggle, onClick,
           <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium ${
             missingDeps.length > 0 ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'
           }`}>
-            <Blocks size={11} className="mr-0.5" /> {mod.dependencies.length} 依赖
+            <Blocks size={11} className="mr-0.5" /> {t('modCard.dependencies', '{count} deps', { count: mod.dependencies.length })}
           </span>
         )}
         <span className="ml-auto text-[11px] text-gray-300">{formatSize(mod.size)}</span>

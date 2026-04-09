@@ -4,8 +4,29 @@ import translations_zh from './zh.json';
 
 const I18nContext = createContext();
 
+// Language object with methods
+class LanguageContext {
+  constructor(code) {
+    this.code = code;
+    this.supportedTranslatableLanguages = ['zh'];
+  }
+
+  canTranslate() {
+    return this.supportedTranslatableLanguages.includes(this.code);
+  }
+
+  toString() {
+    return this.code;
+  }
+
+  // Allow string comparison for backward compatibility
+  static create(code) {
+    return new LanguageContext(code);
+  }
+}
+
 export const I18nProvider = ({ children }) => {
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState(LanguageContext.create('en'));
   const [translations, setTranslations] = useState(translations_en);
 
   useEffect(() => {
@@ -13,7 +34,7 @@ export const I18nProvider = ({ children }) => {
     const systemLang = navigator.language.split('-')[0];
     const supportedLangs = ['en', 'zh'];
     const lang = supportedLangs.includes(systemLang) ? systemLang : 'en';
-    setLanguage(lang);
+    setLanguage(LanguageContext.create(lang));
     
     // Load appropriate translations
     loadTranslations(lang);
@@ -38,16 +59,16 @@ export const I18nProvider = ({ children }) => {
     let value = translations;
 
     for (const k of keys) {
-      value = value?.[k];
-      if (!value) {
+      if (!value?.hasOwnProperty(k)) {
+        console.warn(`[i18n] Missing key "${k}" in path "${key}"`);
         return defaultValue;
       }
+      value = value[k];
     }
 
-    // Replace parameters
     if (typeof value === 'string' && params) {
-      Object.entries(params).forEach(([key, val]) => {
-        value = value.replace(`{${key}}`, val);
+      Object.entries(params).forEach(([paramKey, val]) => {
+        value = value.replace(`{${paramKey}}`, val);
       });
     }
 
@@ -55,7 +76,7 @@ export const I18nProvider = ({ children }) => {
   };
 
   const changeLanguage = (lang) => {
-    setLanguage(lang);
+    setLanguage(LanguageContext.create(lang));
     loadTranslations(lang);
   };
 
